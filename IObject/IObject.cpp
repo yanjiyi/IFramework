@@ -20,4 +20,7 @@ IObject::IObject(IObject* parent)
 IObject::~IObject()
 {
 	Node<IObject*>::SetStatus(_objNode_holder, false);
+	Tree<IObject*>::ReleaseAllData(_objNode_holder);
 }
+
+

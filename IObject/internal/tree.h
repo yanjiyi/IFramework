@@ -179,8 +179,11 @@ class Tree{
 		}
 
 		virtual ~Tree() { 
+#ifndef NDEBUG
+			std::cout <<"Tree : " << this << " Destroy!" << std::endl;
+#endif
 			if(std::is_pointer<T>::value)
-				ReleaseAllData(root);
+				ReleaseAllData();
 #ifndef NDEBUG
 			Print(root);
 #endif
@@ -200,7 +203,7 @@ class Tree{
 			return root->Find(data);
 		}
 
-		void ReleaseAllData(Node<T>* node){
+		static void ReleaseAllData(Node<T>* node){
 			if(node->_status)
 			{
 #ifndef NDEBUG 
@@ -213,6 +216,11 @@ class Tree{
 			{
 				ReleaseAllData(node->_next[i]);
 			}
+		}
+
+ 		void ReleaseAllData()
+		{
+			ReleaseAllData(root);
 		}
 
 #ifndef NDEBUG
