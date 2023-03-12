@@ -233,6 +233,34 @@ class Tree{
 			}			
 		}
 #endif
+
+		static void DreakNode(Node<T>* node)
+		{
+			if(node->_parent!=nullptr)
+			{
+				if(node->_parent->_children>1)
+				{
+					Node<T>** _new_next = new Node<T>*[node->_parent->_children-1];
+
+					int cur = 0;
+					for(int i=0;i<node->_parent->_children;i++)
+					{
+						if(node->_parent->_next[i]!=node)
+						{
+							_new_next[cur] = node->_parent->_next[i];
+							cur++;
+						}
+					}
+
+					delete[] node->_parent->_next;
+					node->_parent->_next = _new_next;
+				}else{
+					delete[] node->_parent->_next;
+				}
+
+				node->_parent->_children--;
+			}
+		}
 	protected:
 		Node<T>* root = nullptr;
 };
