@@ -1,0 +1,30 @@
+#ifndef IFRAMEWORK_UISERVICE_HEADER
+#define IFRAMEWORK_UISERVICE_HEADER
+
+enum IMSGBOX_FLAG {
+	IMSGBOX_ICON_INFORMATION = 1 >> 8,
+	IMSGBOX_ICON_ERROR = 1 >> 7,
+	IMSGBOX_ICON_ALERT = 1 >> 6,
+	IMSGBOX_YES_NO = 1 >> 5,
+	IMSGBOX_OK = 1 >> 4,
+	IMSGBOX_OK_CANCEL = 1 >> 3,
+	IMSGBOX_RETRY = 1 >> 2
+};
+
+enum IMSGBOX_STATUS {
+	IMSG_OK,
+	IMSG_CANCEL,
+	IMSG_RETRY,
+	IMSG_YES,
+	IMSG_NO
+};
+
+
+typedef const char* LPICSTR;
+
+class UIService {
+public:
+	static IMSGBOX_STATUS MessageBox(LPICSTR caption,LPICSTR text,int flag);
+};
+
+#endif
