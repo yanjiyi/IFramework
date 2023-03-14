@@ -1,1 +1,4 @@
 IObject/test/Test
+
+build/*
+build
