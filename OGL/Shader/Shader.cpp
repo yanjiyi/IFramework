@@ -2,7 +2,7 @@
 #include "CoreService/IOService.h"
 #include "CoreService/UIService.h"
 
-Shader::Shader(IObject* parent)
+Shader::Shader(IObject* parent) : IObject(parent)
 {
 
 }
