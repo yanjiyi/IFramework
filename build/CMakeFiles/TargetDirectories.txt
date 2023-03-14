@@ -1,3 +1,0 @@
-/home/ice/Project/IFramework/build/CMakeFiles/Ifw.dir
-/home/ice/Project/IFramework/build/CMakeFiles/edit_cache.dir
-/home/ice/Project/IFramework/build/CMakeFiles/rebuild_cache.dir
