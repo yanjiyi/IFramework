@@ -12,11 +12,11 @@ enum IMSGBOX_FLAG {
 };
 
 enum IMSGBOX_STATUS {
-	IMSG_OK,
-	IMSG_CANCEL,
-	IMSG_RETRY,
-	IMSG_YES,
-	IMSG_NO
+	IMSG_OK = 0,
+	IMSG_CANCEL = 1,
+	IMSG_RETRY = 2,
+	IMSG_YES = 3,
+	IMSG_NO = 4
 };
 
 
@@ -24,7 +24,7 @@ typedef const char* LPICSTR;
 
 class UIService {
 public:
-	static IMSGBOX_STATUS MessageBox(LPICSTR caption,LPICSTR text,int flag);
+	static int MessageBox(LPICSTR caption,LPICSTR text,int flag);
 };
 
 #endif
