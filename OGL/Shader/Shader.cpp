@@ -32,7 +32,7 @@ bool Shader::CompileFromSource(const char *vertexSource, const char *fragmentSou
 
 		std::vector<GLchar> infoLog(maxLength);
 		glGetShaderInfoLog(vertexShader,maxLength,&maxLength,&infoLog[0]);
-		
+
 		UIService::MessageBox("OGL - Vertex Shader", (char*)&infoLog[0], IMSGBOX_ICON_ERROR|IMSGBOX_OK);		
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
@@ -48,7 +48,7 @@ bool Shader::CompileFromSource(const char *vertexSource, const char *fragmentSou
 
 		std::vector<GLchar> infoLog(maxLength);
 		glGetShaderInfoLog(fragmentShader,maxLength,&maxLength,&infoLog[0]);
-		
+
 		UIService::MessageBox("OGL - Fragment Shader", (char*)&infoLog[0], IMSGBOX_ICON_ERROR|IMSGBOX_OK);		
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
@@ -57,41 +57,39 @@ bool Shader::CompileFromSource(const char *vertexSource, const char *fragmentSou
 
 	}
 
-	if(_shader_program_id>0)
-		glDeleteProgram(_shader_program_id);
+	GLuint program = glCreateProgram();
+	glAttachShader(program,vertexShader);
+	glAttachShader(program,fragmentShader);
 
-	_shader_program_id = glCreateProgram();
-	glAttachShader(_shader_program_id,vertexShader);
-	glAttachShader(_shader_program_id,fragmentShader);
-
-	glLinkProgram(_shader_program_id);
+	glLinkProgram(program);
 
 	GLint isLinked = GL_FALSE;
-	glGetProgramiv(_shader_program_id,GL_LINK_STATUS,&isLinked);
+	glGetProgramiv(program,GL_LINK_STATUS,&isLinked);
 	if(GL_FALSE == isLinked)
 	{
 		GLint maxLength = 0;
-		glGetProgramiv(_shader_program_id,GL_INFO_LOG_LENGTH,&maxLength);
+		glGetProgramiv(program,GL_INFO_LOG_LENGTH,&maxLength);
 
 		std::vector<GLchar> infoLog(maxLength);
-		glGetProgramInfoLog(_shader_program_id,maxLength,&maxLength,&infoLog[0]);
+		glGetProgramInfoLog(program,maxLength,&maxLength,&infoLog[0]);
 
 		UIService::MessageBox("OGL - Shader Linking", (char*)&infoLog[0], IMSGBOX_ICON_ERROR|IMSGBOX_OK);
 
-		glDetachShader(_shader_program_id,vertexShader);
-		glDetachShader(_shader_program_id,fragmentShader);
+		glDetachShader(program,vertexShader);
+		glDetachShader(program,fragmentShader);
 		glDeleteShader(vertexShader);
 		glDeleteShader(fragmentShader);
-		glDeleteProgram(_shader_program_id);
-
-		_shader_program_id = 0;
+		glDeleteProgram(program);
 		return false;
 	}
 
-	glDetachShader(_shader_program_id,vertexShader);
-	glDetachShader(_shader_program_id,fragmentShader);
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	if(_shader_program_id>0)
+		glDeleteProgram(_shader_program_id);
+
+	_shader_program_id = program;
+
+	glDetachShader(program,vertexShader);
+	glDetachShader(program,fragmentShader);
 	return true;	
 }
 
@@ -101,6 +99,123 @@ bool Shader::CompileFromFile(const char *vertexPath, const char *fragmentPath)
 	auto fragment_buffer = IOService::ReadFile(fragmentPath);
 
 	return CompileFromSource(vertex_buffer.data(), fragment_buffer.data());
+}
+
+bool Shader::BuildFromBinrary(const char *vertexSpirv, size_t vertexSize, const char *fragmentSpriv, size_t fragmentSize)
+{
+	return BuildFromBinrary(vertexSpirv, vertexSize, fragmentSpriv, fragmentSize,"main");
+}
+
+bool Shader::BuildFromBinrary(const char *vertexSpirv, size_t vertexSize, const char *fragmentSpriv, size_t fragmentSize, const char* entryPoint)
+{
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+	glShaderBinary(1,&vertexShader,GL_SHADER_BINARY_FORMAT_SPIR_V,vertexSpirv,vertexSize);
+
+	glSpecializeShader(vertexShader,(const GLchar*)entryPoint,0,nullptr,nullptr);
+
+	// Specialization is equivalent to compilation.
+	GLint isCompiled = 0;
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &isCompiled);
+	if (isCompiled == GL_FALSE)
+	{
+		GLint maxLength = 0;
+		glGetShaderiv(vertexShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> infoLog(maxLength);
+		glGetShaderInfoLog(vertexShader, maxLength, &maxLength, &infoLog[0]);
+
+		// We don't need the shader anymore.
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+		// Use the infoLog as you see fit.
+		UIService::MessageBox("OGL - Vertex Shader", (char*)&infoLog[0], IMSGBOX_ICON_ERROR|IMSGBOX_OK);
+		// In this simple program, we'll just leave
+		return false;
+	}
+
+	glShaderBinary(1,&fragmentShader,GL_SHADER_BINARY_FORMAT_SPIR_V,fragmentSpriv,fragmentSize);
+	glSpecializeShader(fragmentShader,(const GLchar*)entryPoint,0,nullptr,nullptr);
+
+	// Specialization is equivalent to compilation.
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &isCompiled);
+	if (isCompiled == GL_FALSE)
+	{
+		GLint maxLength = 0;
+		glGetShaderiv(fragmentShader, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> infoLog(maxLength);
+		glGetShaderInfoLog(fragmentShader, maxLength, &maxLength, &infoLog[0]);
+
+		// We don't need the shader anymore.
+		glDeleteShader(fragmentShader);
+		// Either of them. Don't leak shaders.
+		glDeleteShader(vertexShader);
+
+		// Use the infoLog as you see fit.
+		UIService::MessageBox("OGL - Fragment Shader", (char*)&infoLog[0], IMSGBOX_ICON_ERROR|IMSGBOX_OK);	
+		// In this simple program, we'll just leave
+		return false;
+	}
+
+	GLuint program = glCreateProgram();
+
+	// Attach our shaders to our program
+	glAttachShader(program, vertexShader);
+	glAttachShader(program, fragmentShader);
+
+	// Link our program
+	glLinkProgram(program);
+
+	// Note the different functions here: glGetProgram* instead of glGetShader*.
+	GLint isLinked = 0;
+	glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
+	if (isLinked == GL_FALSE)
+	{
+		GLint maxLength = 0;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+
+		// We don't need the program anymore.
+		glDeleteProgram(program);
+		// Don't leak shaders either.
+		glDeleteShader(vertexShader);
+		glDeleteShader(fragmentShader);
+
+		// Use the infoLog as you see fit.
+		UIService::MessageBox("OGL - Shader Linking", (char*)&infoLog[0], IMSGBOX_ICON_ERROR|IMSGBOX_OK);
+		// In this simple program, we'll just leave
+		return false;
+	}
+
+	if(_shader_program_id>0)
+		glDeleteProgram(_shader_program_id);
+
+	_shader_program_id = program;
+
+	// Always detach shaders after a successful link.
+	glDetachShader(program, vertexShader);
+	glDetachShader(program, fragmentShader);
+	return true;
+}
+
+bool Shader::BuildFromBinraryFile(const char *vertexPath, const char *fragmentPath)
+{
+	return BuildFromBinraryFile(vertexPath, fragmentPath, "main");
+}
+
+bool Shader::BuildFromBinraryFile(const char *vertexPath, const char *fragmentPath, const char *entryPoint)
+{
+	std::vector<char> vertexBinraries = IOService::ReadFile(vertexPath);
+	std::vector<char> fragmentBinraries = IOService::ReadFile(fragmentPath);
+
+	return BuildFromBinrary(vertexBinraries.data(), vertexBinraries.size(), fragmentBinraries.data(), fragmentBinraries.size(),entryPoint);
 }
 
 void Shader::Apply()
@@ -125,7 +240,7 @@ GLint Shader::getUniformLocation(const char *name)
 void Shader::setUniform1i(GLint location, int value)
 {
 	if(location < 0)
-	   return;
+		return;
 
 	glUniform1i(location,value);	
 }
@@ -135,7 +250,7 @@ void Shader::setUniform1i(const char *name, int value)
 	GLint location = getUniformLocation(name);
 	if(location<0)
 		return;
-	
+
 	setUniform1i(location,value);
 }
 

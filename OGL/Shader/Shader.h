@@ -12,6 +12,11 @@ public:
 	bool CompileFromFile(const char* vertexPath,const char* fragmentPath);
 	bool CompileFromSource(const char* vertexSource,const char* fragmentSource);
 
+	bool BuildFromBinrary(const char* vertexSpirv,size_t vertexSize,const char* fragmentSpriv,size_t fragmentSize);
+	bool BuildFromBinrary(const char* vertexSpirv,size_t vertexSize,const char* fragmentSpriv,size_t fragmentSize,const char* entryPoint);
+	bool BuildFromBinraryFile(const char* vertexPath,const char* fragmentPath);
+	bool BuildFromBinraryFile(const char* vertexPath,const char* fragmentPath,const char* entryPoint);
+
 	GLint getUniformLocation(const char* name);
 
 	void setUniform1f(GLint location,float value);
