@@ -1,2 +1,2 @@
 main:
-	@g++ -g -o Test IObject-Test.cpp ../IObject/IObject.cpp
+	@g++ -g -I../IObject -o Test IObject-Test.cpp ../IObject/IObject.cpp
