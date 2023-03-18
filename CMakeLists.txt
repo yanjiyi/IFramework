@@ -9,9 +9,13 @@ project(IFramework)
 
 #include_directories(${GTK4_INCLUDE_DIRS})
 include_directories("include" "IObject")
-#link_directories(${GTK4_LIBRARY_DIRS})
+#link_directories(${GTK4_LIBRARY_DIRS}
 
-add_library(Ifw SHARED include/IObject.h IObject/IObject.cpp include/CoreService/IOService.h include/CoreService/UIService.h UIService/UIService.cpp include/UIApplication.h UIService/UIApplication.cpp include/OGL/Shader.h OGL/Shader/Shader.cpp include/OGL/Texture.h OGL/Texture/Texture.cpp)
+file(GLOB_RECURSE native_srcs IObject/*.cpp IOService/*.cpp UIService/*.cpp OGL/*.cpp UIKit/*.cpp)
+
+#add_library(Ifw SHARED include/IObject.h IObject/IObject.cpp include/CoreService/IOService.h include/CoreService/UIService.h UIService/UIService.cpp include/UIApplication.h UIService/UIApplication.cpp include/OGL/Shader.h OGL/Shader/Shader.cpp include/OGL/Texture.h OGL/Texture/Texture.cpp)
+
+add_library(Ifw SHARED ${native_srcs})
 
 target_link_libraries(Ifw SDL2 GLEW EGL GL GLU OpenGL)
 

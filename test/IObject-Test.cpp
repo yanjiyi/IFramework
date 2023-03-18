@@ -1,4 +1,4 @@
-#include "../IObject.h"
+#include "../include/IObject.h"
 
 int main(int,char**)
 {
